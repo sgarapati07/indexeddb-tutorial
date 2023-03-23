@@ -47,6 +47,7 @@ dbReq.onerror = function(event) {
 // addStickyNote adds a sticky note for the message passed in in the notes
 // object store.
 function addStickyNote(db, message) {
+  const start = performance.now();
   // Start a database transaction and get the notes object store
   let tx = db.transaction(['notes'], 'readwrite');
   let store = tx.objectStore('notes');
@@ -56,7 +57,10 @@ function addStickyNote(db, message) {
   store.add(note);
 
   // Wait for the database transaction to complete
-  tx.oncomplete = function() { getAndDisplayNotes(db); }
+  tx.oncomplete = function() { 
+    console.log(`duration to add notes : ${performance.now() - start}`);
+    getAndDisplayNotes(db);
+   }
   tx.onerror = function(event) {
     alert('error storing note ' + event.target.errorCode);
   }
@@ -83,8 +87,10 @@ let reverseOrder = false;
 // getAndDisplayNotes retrieves all notes in the notes object store using an
 // IndexedDB cursor and sends them to displayNotes so they can be displayed
 function getAndDisplayNotes(db) {
+  const start = performance.now();
   let tx = db.transaction(['notes'], 'readonly');
   let store = tx.objectStore('notes');
+  const note = store.get('1');
 
   // Retrieve the sticky notes index to run our cursor query on; the results
   // will be ordered by their timestamp
@@ -96,7 +102,9 @@ function getAndDisplayNotes(db) {
   let req = index.openCursor(null, reverseOrder ? 'prev' : 'next');
   let allNotes = [];
 
+
   req.onsuccess = function(event) {
+    console.log(`duration to get : ${performance.now() - start}`);
     // The result of req.onsuccess is an IDBCursor
     let cursor = event.target.result;
 
